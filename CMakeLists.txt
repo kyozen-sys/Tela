@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.25)
+
+project(tela VERSION "0.1.0" LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(PROJECT_PLATFORM "wayland" CACHE STRING "The platform to build for (e.g. wayland, x11, etc.)")
+
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS src/*.cpp)
+
+file(GLOB_RECURSE PROJECT_PLATFORM_SOURCES CONFIGURE_DEPENDS src/platform/${PROJECT_PLATFORM}/*.cpp)
+
+list(FILTER PROJECT_SOURCES EXCLUDE REGEX "src/platform/.*")
+
+add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES} ${PROJECT_PLATFORM_SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+    PUBLIC ./include
+    PRIVATE ./src
+)
