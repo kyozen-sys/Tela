@@ -1,4 +1,4 @@
-.PHONY: all build configure clean rebuild
+.PHONY: all build configure examples clean rebuild
 
 COMPILE_DIR := ./build
 
@@ -10,6 +10,10 @@ configure:
 	cmake -S . -B $(COMPILE_DIR) $(CMAKE_FLAGS)
 
 build: configure
+	cmake --build $(COMPILE_DIR) --parallel
+
+examples:
+	cmake -S . -B $(COMPILE_DIR) -DBUILD_EXAMPLES=ON $(CMAKE_FLAGS)
 	cmake --build $(COMPILE_DIR) --parallel
 
 clean:
