@@ -14,6 +14,7 @@ build: configure
 
 examples:
 	cmake -S . -B $(COMPILE_DIR) -DBUILD_EXAMPLES=ON $(CMAKE_FLAGS)
+
 	cmake --build $(COMPILE_DIR) --parallel
 
 clean:
