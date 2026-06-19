@@ -56,9 +56,9 @@ public:
     void set_size(int width, int height);
 
 private:
-    float clear_r_ = 0.0f;
-    float clear_g_ = 0.0f;
-    float clear_b_ = 0.0f;
+    float clear_r_ = 1.0f;
+    float clear_g_ = 1.0f;
+    float clear_b_ = 1.0f;
     float clear_a_ = 1.0f;
 
     int width_ = 0;
