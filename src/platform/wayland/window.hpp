@@ -9,6 +9,8 @@
 namespace tela::platform::wayland
 {
 
+extern const wl_seat_listener wwl_seat_listener;
+
 struct WaylandWindowImpl {
     int width = 0;
     int height = 0;
@@ -24,6 +26,9 @@ struct WaylandWindowImpl {
     wl_registry* wwl_registry = nullptr;
     wl_compositor* wwl_compositor = nullptr;
     wl_surface* wwl_surface = nullptr;
+    wl_seat* wwl_seat = nullptr;
+    wl_keyboard* wwl_keyboard = nullptr;
+    wl_pointer* wwl_pointer = nullptr;
 
     xdg_wm_base* wxdg_wm_base = nullptr;
     xdg_surface* wxdg_surface = nullptr;

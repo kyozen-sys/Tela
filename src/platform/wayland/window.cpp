@@ -3,6 +3,8 @@
 #include <cstring>
 #include <stdexcept>
 
+#include <poll.h>
+
 std::unique_ptr<tela::Window>
 tela::Window::create(int width, int height, std::string_view title) {
     return std::make_unique<tela::platform::wayland::WaylandWindow>(width, height, title);
@@ -24,6 +26,10 @@ void on_wl_global(void* data, wl_registry* registry, uint32_t name, const char* 
 
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         impl->wwl_compositor = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, 1));
+    } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+        impl->wwl_seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, 1));
+
+        wl_seat_add_listener(impl->wwl_seat, &tela::platform::wayland::wwl_seat_listener, impl);
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         impl->wxdg_wm_base = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
     
@@ -133,6 +139,12 @@ WaylandWindow::~WaylandWindow() {
     if (impl_->wxdg_wm_base)  xdg_wm_base_destroy(impl_->wxdg_wm_base);
     
     if (impl_->wwl_compositor) wl_compositor_destroy(impl_->wwl_compositor);
+
+    if (impl_->wwl_keyboard) wl_keyboard_destroy(impl_->wwl_keyboard);
+
+    if (impl_->wwl_pointer)  wl_pointer_destroy(impl_->wwl_pointer);
+    
+    if (impl_->wwl_seat)     wl_seat_destroy(impl_->wwl_seat);
     
     if (impl_->wwl_registry) wl_registry_destroy(impl_->wwl_registry);
 
@@ -160,9 +172,22 @@ void WaylandWindow::set_resize_handler(std::function<void(int, int)> handler) {
 }
 
 void WaylandWindow::poll_events() {
-    wl_display_dispatch_pending(impl_->wwl_display);
-
     wl_display_flush(impl_->wwl_display);
+
+    if (wl_display_prepare_read(impl_->wwl_display) != 0) {
+        wl_display_dispatch_pending(impl_->wwl_display); return;
+    }
+
+    pollfd pfd = { wl_display_get_fd(impl_->wwl_display), POLLIN, 0 };
+
+    poll(&pfd, 1, 0);
+
+    if (pfd.revents & POLLIN) wl_display_read_events(impl_->wwl_display);
+    else {
+        wl_display_cancel_read(impl_->wwl_display);
+    }
+
+    wl_display_dispatch_pending(impl_->wwl_display);
 }
 
 }
