@@ -11,7 +11,7 @@ class Window
 public:
     struct Handle {
         void* display;
-        void* surface;
+        void* window;
     };
 
     Window() = default;

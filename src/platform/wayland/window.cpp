@@ -112,6 +112,11 @@ WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : im
 
     wl_display_roundtrip(impl_->wwl_display);
 
+    impl_->wwl_egl_window = wl_egl_window_create(impl_->wwl_surface, impl_->width, impl_->height);
+
+    if (!impl_->wwl_egl_window)
+        throw std::runtime_error("Failed to create wl_egl_window");
+
     impl_->open = true;
 }
 
@@ -119,6 +124,8 @@ WaylandWindow::~WaylandWindow() {
     if (impl_->wxdg_toplevel)  xdg_toplevel_destroy(impl_->wxdg_toplevel);
     
     if (impl_->wxdg_surface) xdg_surface_destroy(impl_->wxdg_surface);
+
+    if (impl_->wwl_egl_window) wl_egl_window_destroy(impl_->wwl_egl_window);
     
     if (impl_->wwl_surface)  wl_surface_destroy(impl_->wwl_surface);
     
@@ -134,7 +141,7 @@ WaylandWindow::~WaylandWindow() {
 }
 
 WaylandWindow::Handle WaylandWindow::native_handle() const {
-    return Handle{impl_->wwl_display, impl_->wwl_surface};
+    return Handle{impl_->wwl_display, impl_->wwl_egl_window};
 }
 
 bool WaylandWindow::is_open() const {

@@ -4,6 +4,7 @@
 
 #include "xdg-shell-client-protocol.h"
 
+#include <wayland-egl.h>
 #include <wayland-client.h>
 
 namespace tela::platform::wayland
@@ -17,6 +18,8 @@ struct WaylandWindowImpl {
     wl_registry* wwl_registry = nullptr;
     wl_compositor* wwl_compositor = nullptr;
     wl_surface* wwl_surface = nullptr;
+
+    wl_egl_window* wwl_egl_window = nullptr;
 
     xdg_wm_base* wxdg_wm_base = nullptr;
     xdg_surface* wxdg_surface = nullptr;
