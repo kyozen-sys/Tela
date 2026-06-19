@@ -11,15 +11,15 @@ tela::Window::create(int width, int height, std::string_view title) {
 namespace
 {
 
-static void on_xdg_wm_base_ping(void*, xdg_wm_base* wm, uint32_t serial) {
+void on_xdg_wm_base_ping(void*, xdg_wm_base* wm, uint32_t serial) {
     xdg_wm_base_pong(wm, serial);
 }
 
-static constexpr xdg_wm_base_listener wxdg_wm_base_listener = {
+constexpr xdg_wm_base_listener wxdg_wm_base_listener = {
     .ping = on_xdg_wm_base_ping
 };
 
-static void on_wl_global(void* data, wl_registry* registry, uint32_t name, const char* interface, uint32_t) {
+void on_wl_global(void* data, wl_registry* registry, uint32_t name, const char* interface, uint32_t) {
     auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
 
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
@@ -31,14 +31,14 @@ static void on_wl_global(void* data, wl_registry* registry, uint32_t name, const
     }
 }
 
-static void on_wl_global_remove(void*, wl_registry*, uint32_t) {}
+void on_wl_global_remove(void*, wl_registry*, uint32_t) {}
 
-static constexpr wl_registry_listener wwl_registry_listener = {
+constexpr wl_registry_listener wwl_registry_listener = {
     .global = on_wl_global,
     .global_remove = on_wl_global_remove
 };
 
-static void on_xdg_surface_configure(void* data, xdg_surface* surface, uint32_t serial) {
+void on_xdg_surface_configure(void* data, xdg_surface* surface, uint32_t serial) {
     auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
 
     xdg_surface_ack_configure(surface, serial);
@@ -46,19 +46,27 @@ static void on_xdg_surface_configure(void* data, xdg_surface* surface, uint32_t 
     impl->configured = true;    
 }
 
-static constexpr xdg_surface_listener wxdg_surface_listener = {
+constexpr xdg_surface_listener wxdg_surface_listener = {
     .configure = on_xdg_surface_configure
 };
 
-static void on_xdg_toplevel_configure(void*, xdg_toplevel*, int32_t, int32_t, wl_array*) {}
+void on_xdg_toplevel_configure(void* data, xdg_toplevel*, int32_t width, int32_t height, wl_array*) {
+    if (width == 0 || height == 0) return;
 
-static void on_xdg_toplevel_close(void* data, xdg_toplevel*) {
+    auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
+
+    impl->width = width; impl->height = height;
+
+    // wl_egl_window_resize - callback with Renderer is required
+}
+
+void on_xdg_toplevel_close(void* data, xdg_toplevel*) {
     auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
 
     impl->open = false;
 }
 
-static constexpr xdg_toplevel_listener wxdg_toplevel_listener = {
+constexpr xdg_toplevel_listener wxdg_toplevel_listener = {
     .configure = on_xdg_toplevel_configure,
     .close = on_xdg_toplevel_close,
     .configure_bounds = nullptr,
@@ -69,7 +77,7 @@ static constexpr xdg_toplevel_listener wxdg_toplevel_listener = {
 
 namespace tela::platform::wayland {
 
-WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : impl_(new WaylandWindowImpl{width, height}) {
+WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : impl_(new WaylandWindowImpl{width, height, std::string(title)}) {
     impl_->wwl_display = wl_display_connect(nullptr);
 
     if (!impl_->wwl_display)
@@ -80,7 +88,7 @@ WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : im
     if (!impl_->wwl_registry)
         throw std::runtime_error("Failed to get Wayland registry");
 
-    wl_registry_add_listener(impl_->wwl_registry, &wwl_registry_listener, impl_);
+    wl_registry_add_listener(impl_->wwl_registry, &wwl_registry_listener, impl_.get());
 
     wl_display_roundtrip(impl_->wwl_display);
 
@@ -97,25 +105,20 @@ WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : im
     if (!impl_->wxdg_surface)
         throw std::runtime_error("Failed to get xdg_surface");
 
-    xdg_surface_add_listener(impl_->wxdg_surface, &wxdg_surface_listener, impl_);
+    xdg_surface_add_listener(impl_->wxdg_surface, &wxdg_surface_listener, impl_.get());
 
     impl_->wxdg_toplevel = xdg_surface_get_toplevel(impl_->wxdg_surface);
 
     if (!impl_->wxdg_toplevel)
         throw std::runtime_error("Failed to get xdg_toplevel");
     
-    xdg_toplevel_add_listener(impl_->wxdg_toplevel, &wxdg_toplevel_listener, impl_);
+    xdg_toplevel_add_listener(impl_->wxdg_toplevel, &wxdg_toplevel_listener, impl_.get());
 
-    xdg_toplevel_set_title(impl_->wxdg_toplevel, title.data());
+    xdg_toplevel_set_title(impl_->wxdg_toplevel, impl_->title.c_str());
 
     wl_surface_commit(impl_->wwl_surface);
 
     wl_display_roundtrip(impl_->wwl_display);
-
-    impl_->wwl_egl_window = wl_egl_window_create(impl_->wwl_surface, impl_->width, impl_->height);
-
-    if (!impl_->wwl_egl_window)
-        throw std::runtime_error("Failed to create wl_egl_window");
 
     impl_->open = true;
 }
@@ -124,8 +127,6 @@ WaylandWindow::~WaylandWindow() {
     if (impl_->wxdg_toplevel)  xdg_toplevel_destroy(impl_->wxdg_toplevel);
     
     if (impl_->wxdg_surface) xdg_surface_destroy(impl_->wxdg_surface);
-
-    if (impl_->wwl_egl_window) wl_egl_window_destroy(impl_->wwl_egl_window);
     
     if (impl_->wwl_surface)  wl_surface_destroy(impl_->wwl_surface);
     
@@ -136,12 +137,10 @@ WaylandWindow::~WaylandWindow() {
     if (impl_->wwl_registry) wl_registry_destroy(impl_->wwl_registry);
 
     if (impl_->wwl_display)  wl_display_disconnect(impl_->wwl_display);
-
-    delete impl_;
 }
 
 WaylandWindow::Handle WaylandWindow::native_handle() const {
-    return Handle{impl_->wwl_display, impl_->wwl_egl_window};
+    return Handle{impl_->wwl_display, impl_->wwl_surface};
 }
 
 bool WaylandWindow::is_open() const {

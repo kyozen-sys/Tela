@@ -4,7 +4,6 @@
 
 #include "xdg-shell-client-protocol.h"
 
-#include <wayland-egl.h>
 #include <wayland-client.h>
 
 namespace tela::platform::wayland
@@ -14,19 +13,19 @@ struct WaylandWindowImpl {
     int width = 0;
     int height = 0;
 
+    std::string title;
+
+    bool configured = false;
+    bool open = false;
+
     wl_display* wwl_display = nullptr;
     wl_registry* wwl_registry = nullptr;
     wl_compositor* wwl_compositor = nullptr;
     wl_surface* wwl_surface = nullptr;
 
-    wl_egl_window* wwl_egl_window = nullptr;
-
     xdg_wm_base* wxdg_wm_base = nullptr;
     xdg_surface* wxdg_surface = nullptr;
     xdg_toplevel* wxdg_toplevel = nullptr;
-
-    bool open = false;
-    bool configured = false;
 };
 
 class WaylandWindow final : public Window
@@ -44,10 +43,10 @@ public:
 
     [[nodiscard]] Handle native_handle() const override;
 
-    virtual void poll_events() override;
+    void poll_events() override;
 
 private:
-    WaylandWindowImpl* impl_;
+    std::unique_ptr<WaylandWindowImpl> impl_;
 };
 
 }
