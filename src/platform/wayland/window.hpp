@@ -15,10 +15,10 @@ struct WaylandWindowImpl {
 
     std::string title;
 
-    std::function<void(int, int)> on_resize;
-
     bool configured = false;
     bool open = false;
+
+    std::function<void(int, int)> on_resize = nullptr;
 
     wl_display* wwl_display = nullptr;
     wl_registry* wwl_registry = nullptr;

@@ -1,7 +1,6 @@
 #include "renderer.hpp"
 
 #include <GL/gl.h>
-#include <iostream>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>

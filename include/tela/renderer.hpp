@@ -20,7 +20,7 @@ public:
 
     virtual void present() = 0;
 
-    [[nodiscard]] static std::unique_ptr<Renderer> create(const Window& window);
+    [[nodiscard]] static std::unique_ptr<Renderer> create(Window& window);
 };
 
 }

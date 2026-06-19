@@ -4,10 +4,12 @@
 
 #include <wayland-egl.h>
 
+#include <GL/gl.h>
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-std::unique_ptr<tela::Renderer> tela::Renderer::create(const Window& window) {
+std::unique_ptr<tela::Renderer> tela::Renderer::create(Window& window) {
     auto handle = window.native_handle();
 
     auto* wwl_display = static_cast<struct wl_display*>(handle.display);
@@ -33,9 +35,19 @@ std::unique_ptr<tela::Renderer> tela::Renderer::create(const Window& window) {
     if (!egl_window)
         throw std::runtime_error("Failed to create wl_egl_window");
 
-    auto native_window = reinterpret_cast<EGLNativeWindowType>(egl_window.get());
+    auto raw_egl_window = egl_window.release();
 
-    return std::make_unique<platform::opengl::OpenGLRenderer>(egl_display, native_window, [window = egl_window.release()]{
-        wl_egl_window_destroy(window);
+    auto renderer = std::make_unique<platform::opengl::OpenGLRenderer>(egl_display, reinterpret_cast<EGLNativeWindowType>(raw_egl_window),
+        [raw_egl_window] {
+            wl_egl_window_destroy(raw_egl_window);
+        }
+    );
+
+    window.set_resize_handler([raw_egl_window](int width, int height) {
+        wl_egl_window_resize(raw_egl_window, width, height, 0, 0);
+
+        glViewport(0, 0, width, height);
     });
+
+    return renderer;
 }
