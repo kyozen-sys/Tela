@@ -1,5 +1,7 @@
 #include "tela/application.hpp"
 
+#include "tela/input.hpp"
+
 namespace tela
 {
 
@@ -35,6 +37,8 @@ Renderer& Application::renderer() {
 
 void Application::run() {
     while (impl_->window->is_open()) {
+        Input::advance_frame();
+
         impl_->window->poll_events();
 
         impl_->scene.tick();
