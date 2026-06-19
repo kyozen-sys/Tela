@@ -2,7 +2,22 @@
 
 C++ multimedia and game-development library for Linux. Provides windowing, 2D rendering,
 input handling, and audio directly over Wayland + OpenGL (EGL), without SDL or any other
-intermediary. API inspired by Pygame.
+intermediary.
+
+## API Design
+
+Tela uses a **node-based scene system** inspired by Godot:
+
+- `App` owns the window, renderer, and scene tree. User calls `app.run<MyScene>()`.
+- `Scene` is the root of the node tree.
+- `Node` is the base class. Each node implements:
+  - `process(float delta)` — called every frame with delta time in seconds
+  - `draw(Renderer&)` — called every frame for rendering, after all `process` calls
+  - `add_child(Node&)` — builds the scene tree; parent calls children recursively
+- `Input` is a global consulted statically: `Input::is_key_pressed(Key::Space)`
+- `Renderer` is abstract (`GLRenderer` for OpenGL/EGL on Wayland). Passed to `draw()`.
+- `Window` is abstract (`WaylandWindow` for Wayland). Created by `App`.
+- Delta time is calculated by the `SceneTree` and passed down through `process`.
 
 ## Claude's Role
 
@@ -61,6 +76,7 @@ State the problem first, then the suggested code. Never apply it silently.
 
 These features constitute a complete v1:
 1. Wayland window + event loop + close on ESC
-2. 2D rendering: sprites, textures, clear color, delta time
-3. Input: keyboard + mouse
-4. Audio: ALSA or PipeWire (direct, no intermediary)
+2. Node/Scene system: `Node`, `Scene`, `App`, recursive process + draw
+3. 2D rendering via `GLRenderer`: clear color, sprites, textures
+4. Input: `Input::is_key_pressed()`, `Input::is_mouse_button_pressed()`
+5. Audio: ALSA or PipeWire (direct, no intermediary)
