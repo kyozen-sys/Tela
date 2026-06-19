@@ -57,7 +57,7 @@ void on_xdg_toplevel_configure(void* data, xdg_toplevel*, int32_t width, int32_t
 
     impl->width = width; impl->height = height;
 
-    // wl_egl_window_resize - callback with Renderer is required
+    if (impl->on_resize) impl->on_resize(width, height);
 }
 
 void on_xdg_toplevel_close(void* data, xdg_toplevel*) {
@@ -153,6 +153,10 @@ int WaylandWindow::width() const {
 
 int WaylandWindow::height() const {
     return impl_->height;
+}
+
+void WaylandWindow::set_resize_handler(std::function<void(int, int)> handler) {
+    impl_->on_resize = std::move(handler);
 }
 
 void WaylandWindow::poll_events() {

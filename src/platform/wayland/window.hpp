@@ -15,6 +15,8 @@ struct WaylandWindowImpl {
 
     std::string title;
 
+    std::function<void(int, int)> on_resize;
+
     bool configured = false;
     bool open = false;
 
@@ -42,6 +44,8 @@ public:
     [[nodiscard]] int height() const override;
 
     [[nodiscard]] Handle native_handle() const override;
+
+    void set_resize_handler(std::function<void(int, int)> handler) override;
 
     void poll_events() override;
 

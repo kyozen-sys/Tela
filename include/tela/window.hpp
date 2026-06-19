@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string_view>
+#include <functional>
 
 namespace tela
 {
@@ -32,6 +33,8 @@ public:
     [[nodiscard]] virtual int height() const = 0;
 
     [[nodiscard]] virtual Handle native_handle() const = 0;
+
+    virtual void set_resize_handler(std::function<void(int, int)> handler) = 0;
 
     virtual void poll_events() = 0;
 };
