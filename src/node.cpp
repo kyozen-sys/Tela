@@ -66,6 +66,16 @@ void SceneNode::set_size(int width, int height) {
     height_ = height;
 }
 
+void SceneNode::tick() {
+    auto now = std::chrono::steady_clock::now();
+
+    float delta = std::chrono::duration<float>(now - last_tick_).count();
+
+    last_tick_ = now;
+
+    Node::tick(delta);
+}
+
 int SceneNode::width() const {
     return width_;
 }

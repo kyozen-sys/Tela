@@ -1,10 +1,5 @@
 #include "tela/application.hpp"
 
-#include <chrono>
-#include <algorithm>
-
-#include <iostream>
-
 namespace tela
 {
 
@@ -39,20 +34,10 @@ Renderer& Application::renderer() {
 }
 
 void Application::run() {
-    using clock = std::chrono::steady_clock;
-
-    auto last = clock::now();
-
     while (impl_->window->is_open()) {
         impl_->window->poll_events();
 
-        auto now = clock::now();
-
-        float delta = std::chrono::duration<float>(now - last).count();
-
-        last = now;
-
-        impl_->scene.tick(delta);
+        impl_->scene.tick();
 
         impl_->scene.draw(*impl_->renderer);
 

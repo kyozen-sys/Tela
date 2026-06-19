@@ -3,6 +3,7 @@
 #include "tela/renderer.hpp"
 
 #include <span>
+#include <chrono>
 #include <vector>
 
 namespace tela
@@ -10,8 +11,6 @@ namespace tela
 
 class Node
 {
-friend class Application;
-
 friend class SceneNode;
 
 public:
@@ -42,8 +41,10 @@ private:
     void collect(std::vector<Node*>& out);
 };
 
-class SceneNode : public Node 
+class SceneNode : public Node
 {
+friend class Application;
+
 public:
     void draw(Renderer& renderer) override;
     
@@ -63,6 +64,10 @@ private:
 
     int width_ = 0;
     int height_ = 0;
+
+    std::chrono::steady_clock::time_point last_tick_ = std::chrono::steady_clock::now();
+
+    void tick();
 };
 
 }
