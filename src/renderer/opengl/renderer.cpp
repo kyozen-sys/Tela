@@ -46,6 +46,13 @@ OpenGLRenderer::OpenGLRenderer(EGLDisplay display, EGLNativeWindowType native_wi
 
     if (!eglMakeCurrent(impl_->egl_display, impl_->egl_surface, impl_->egl_surface, impl_->egl_context))
         throw std::runtime_error("Failed to make EGL context current");
+
+    EGLint w = 0, h = 0;
+
+    eglQuerySurface(impl_->egl_display, impl_->egl_surface, EGL_WIDTH, &w);
+    eglQuerySurface(impl_->egl_display, impl_->egl_surface, EGL_HEIGHT, &h);
+    
+    glViewport(0, 0, w, h);
 }
 
 OpenGLRenderer::~OpenGLRenderer() {
