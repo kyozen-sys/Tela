@@ -26,11 +26,15 @@ void on_wl_global(void* data, wl_registry* registry, uint32_t name, const char* 
 
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         impl->wwl_compositor = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, 1));
-    } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+    }
+    
+    if (strcmp(interface, wl_seat_interface.name) == 0) {
         impl->wwl_seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, 1));
 
         wl_seat_add_listener(impl->wwl_seat, &tela::platform::wayland::wwl_seat_listener, impl);
-    } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
+    }
+    
+    if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         impl->wxdg_wm_base = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
     
         xdg_wm_base_add_listener(impl->wxdg_wm_base, &wxdg_wm_base_listener, impl);
@@ -44,40 +48,56 @@ constexpr wl_registry_listener wwl_registry_listener = {
     .global_remove = on_wl_global_remove
 };
 
-void on_xdg_surface_configure(void* data, xdg_surface* surface, uint32_t serial) {
-    auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
-    xdg_surface_ack_configure(surface, serial);
-
-    impl->configured = true;    
+void on_ldecor_error(libdecor*, libdecor_error, const char *message) {
+    throw std::runtime_error(std::string("Error captured from libdecor: ") + message);
 }
 
-constexpr xdg_surface_listener wxdg_surface_listener = {
-    .configure = on_xdg_surface_configure
+static libdecor_interface ldecor_interface = {
+    .error = on_ldecor_error 
 };
 
-void on_xdg_toplevel_configure(void* data, xdg_toplevel*, int32_t width, int32_t height, wl_array*) {
-    if (width == 0 || height == 0) return;
-
+void on_ldecor_frame_configure(libdecor_frame* frame, libdecor_configuration *configuration, void *data) {
     auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
+
+    int width = impl->width, height = impl->height;
+
+    libdecor_configuration_get_content_size(configuration, frame, &width, &height);
 
     impl->width = width; impl->height = height;
 
     if (impl->on_resize) impl->on_resize(width, height);
+
+    auto* state = libdecor_state_new(width, height);
+
+    libdecor_frame_commit(frame, state, configuration);
+
+    libdecor_state_free(state);
+    
+    impl->configured = true;
 }
 
-void on_xdg_toplevel_close(void* data, xdg_toplevel*) {
+void on_ldecor_frame_close(libdecor_frame*, void *data) {
     auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
 
     impl->open = false;
 }
 
-constexpr xdg_toplevel_listener wxdg_toplevel_listener = {
-    .configure = on_xdg_toplevel_configure,
-    .close = on_xdg_toplevel_close,
-    .configure_bounds = nullptr,
-    .wm_capabilities = nullptr
+void on_ldecor_frame_commit(libdecor_frame*, void *data) {
+    auto* impl = static_cast<tela::platform::wayland::WaylandWindowImpl*>(data);
+
+    wl_surface_commit(impl->wwl_surface);
+}
+
+static libdecor_frame_interface ldecor_frame_interface = {
+    .configure = on_ldecor_frame_configure,
+    .close = on_ldecor_frame_close,
+    .commit = on_ldecor_frame_commit,
 };
+
+#pragma GCC diagnostic pop
 
 }
 
@@ -106,34 +126,31 @@ WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : im
     if (!impl_->wwl_surface)
         throw std::runtime_error("Failed to create Wayland surface");
 
-    impl_->wxdg_surface = xdg_wm_base_get_xdg_surface(impl_->wxdg_wm_base, impl_->wwl_surface);
+    impl_->ldecor = libdecor_new(impl_->wwl_display, &ldecor_interface);
 
-    if (!impl_->wxdg_surface)
-        throw std::runtime_error("Failed to get xdg_surface");
-
-    xdg_surface_add_listener(impl_->wxdg_surface, &wxdg_surface_listener, impl_.get());
-
-    impl_->wxdg_toplevel = xdg_surface_get_toplevel(impl_->wxdg_surface);
-
-    if (!impl_->wxdg_toplevel)
-        throw std::runtime_error("Failed to get xdg_toplevel");
+    if (!impl_->ldecor)
+        throw std::runtime_error("Failed to create ldecor");
     
-    xdg_toplevel_add_listener(impl_->wxdg_toplevel, &wxdg_toplevel_listener, impl_.get());
+    impl_->ldecor_frame = libdecor_decorate(impl_->ldecor, impl_->wwl_surface, &ldecor_frame_interface, impl_.get());
 
-    xdg_toplevel_set_title(impl_->wxdg_toplevel, impl_->title.c_str());
+    if (!impl_->ldecor_frame)
+        throw std::runtime_error("Failed to create ldecor_decorate");
 
-    wl_surface_commit(impl_->wwl_surface);
+    libdecor_frame_set_title(impl_->ldecor_frame, impl_->title.c_str());
 
-    wl_display_roundtrip(impl_->wwl_display);
+    libdecor_frame_map(impl_->ldecor_frame);
+
+    while (!impl_->configured)
+        libdecor_dispatch(impl_->ldecor, -1);
 
     impl_->open = true;
 }
 
 WaylandWindow::~WaylandWindow() {
-    if (impl_->wxdg_toplevel)  xdg_toplevel_destroy(impl_->wxdg_toplevel);
-    
-    if (impl_->wxdg_surface) xdg_surface_destroy(impl_->wxdg_surface);
-    
+    if (impl_->ldecor_frame) libdecor_frame_unref(impl_->ldecor_frame);
+
+    if (impl_->ldecor) libdecor_unref(impl_->ldecor);
+
     if (impl_->wwl_surface) wl_surface_destroy(impl_->wwl_surface);
     
     if (impl_->wxdg_wm_base) xdg_wm_base_destroy(impl_->wxdg_wm_base);
@@ -142,7 +159,7 @@ WaylandWindow::~WaylandWindow() {
 
     if (impl_->wwl_keyboard) wl_keyboard_destroy(impl_->wwl_keyboard);
 
-    if (impl_->wwl_pointer)  wl_pointer_destroy(impl_->wwl_pointer);
+    if (impl_->wwl_pointer) wl_pointer_destroy(impl_->wwl_pointer);
     
     if (impl_->wwl_seat) wl_seat_destroy(impl_->wwl_seat);
     
@@ -188,6 +205,9 @@ void WaylandWindow::poll_events() {
     }
 
     wl_display_dispatch_pending(impl_->wwl_display);
+
+    if (impl_->ldecor)
+        libdecor_dispatch(impl_->ldecor, 0);
 }
 
 }

@@ -39,17 +39,19 @@ if(PROJECT_PLATFORM STREQUAL "wayland")
 
     target_sources(${PROJECT_NAME} PRIVATE ${PLATFORM_SOURCES})
 
-    list(APPEND PROJECT_LIBRARIES PkgConfig::WAYLAND_CLIENT)
-
     include(WaylandProtocol)
 
     find_program(WAYLAND_SCANNER wayland-scanner REQUIRED)
+
+    pkg_check_modules(LIBDECOR REQUIRED IMPORTED_TARGET libdecor-0)
 
     pkg_check_modules(WAYLAND_PROTOCOLS REQUIRED wayland-protocols)
 
     pkg_get_variable(WL_PROTOCOLS_DIR wayland-protocols pkgdatadir)
 
     wayland_protocol(${PROJECT_NAME} ${WL_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml)
+
+    list(APPEND PROJECT_LIBRARIES PkgConfig::WAYLAND_CLIENT PkgConfig::LIBDECOR)
 elseif (PROJECT_PLATFORM STREQUAL "x11")
     message(FATAL_ERROR "X11 platform is not yet supported.")
 else()

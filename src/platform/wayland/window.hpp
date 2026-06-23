@@ -4,6 +4,8 @@
 
 #include "xdg-shell-client-protocol.h"
 
+#include <libdecor-0/libdecor.h>
+
 #include <wayland-client.h>
 
 namespace tela::platform::wayland
@@ -31,8 +33,9 @@ struct WaylandWindowImpl {
     wl_pointer* wwl_pointer = nullptr;
 
     xdg_wm_base* wxdg_wm_base = nullptr;
-    xdg_surface* wxdg_surface = nullptr;
-    xdg_toplevel* wxdg_toplevel = nullptr;
+
+    libdecor* ldecor = nullptr;
+    libdecor_frame* ldecor_frame = nullptr;
 };
 
 class WaylandWindow final : public Window
