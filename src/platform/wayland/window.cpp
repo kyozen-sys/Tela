@@ -134,9 +134,9 @@ WaylandWindow::~WaylandWindow() {
     
     if (impl_->wxdg_surface) xdg_surface_destroy(impl_->wxdg_surface);
     
-    if (impl_->wwl_surface)  wl_surface_destroy(impl_->wwl_surface);
+    if (impl_->wwl_surface) wl_surface_destroy(impl_->wwl_surface);
     
-    if (impl_->wxdg_wm_base)  xdg_wm_base_destroy(impl_->wxdg_wm_base);
+    if (impl_->wxdg_wm_base) xdg_wm_base_destroy(impl_->wxdg_wm_base);
     
     if (impl_->wwl_compositor) wl_compositor_destroy(impl_->wwl_compositor);
 
@@ -144,7 +144,7 @@ WaylandWindow::~WaylandWindow() {
 
     if (impl_->wwl_pointer)  wl_pointer_destroy(impl_->wwl_pointer);
     
-    if (impl_->wwl_seat)     wl_seat_destroy(impl_->wwl_seat);
+    if (impl_->wwl_seat) wl_seat_destroy(impl_->wwl_seat);
     
     if (impl_->wwl_registry) wl_registry_destroy(impl_->wwl_registry);
 

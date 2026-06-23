@@ -3,12 +3,16 @@
 #include "window.hpp"
 #include "input_state.hpp"
 
+#include <unistd.h>
+
 #include <wayland-client.h>
 
 namespace
 {
 
-void on_wl_keyboard_keymap(void*, wl_keyboard*, uint32_t, int, uint32_t) {}
+void on_wl_keyboard_keymap(void*, wl_keyboard*, uint32_t, int fd, uint32_t) {
+    close(fd);
+}
 
 void on_wl_keyboard_enter(void*, wl_keyboard*, uint32_t, wl_surface*, wl_array*) {}
 
