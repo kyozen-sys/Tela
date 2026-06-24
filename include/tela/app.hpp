@@ -7,14 +7,14 @@
 namespace tela
 {
 
-class Application
+class App
 {
 public:
-    Application(int width, int height, std::string_view title);
+    App(int width, int height, std::string_view title);
 
-    ~Application();
+    ~App();
 
-    [[nodiscard]] SceneNode& scene();
+    [[nodiscard]] Scene& scene();
 
     [[nodiscard]] Renderer& renderer();
 

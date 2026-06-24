@@ -41,7 +41,7 @@ enum class MouseButton : unsigned int {
 };
 
 class Input {
-friend class Application;
+friend class App;
 
 public:
     [[nodiscard]] static bool is_key_pressed(Key key);

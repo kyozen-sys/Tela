@@ -11,7 +11,7 @@ namespace tela
 
 class Node
 {
-friend class SceneNode;
+friend class Scene;
 
 public:
     virtual ~Node() = default;
@@ -41,9 +41,9 @@ private:
     void collect(std::vector<Node*>& out);
 };
 
-class SceneNode : public Node
+class Scene : public Node
 {
-friend class Application;
+friend class App;
 
 public:
     void draw(Renderer& renderer) override;

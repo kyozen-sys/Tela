@@ -41,7 +41,7 @@ int Node::layer() const {
     return layer_;
 }
 
-void SceneNode::draw(Renderer& renderer) {
+void Scene::draw(Renderer& renderer) {
     renderer.clear(clear_r_, clear_g_, clear_b_, clear_a_);
 
     std::vector<Node*> drawables;
@@ -57,16 +57,16 @@ void SceneNode::draw(Renderer& renderer) {
         node->draw(renderer);
 }
 
-void SceneNode::set_clear_color(float r, float g, float b, float a) {
+void Scene::set_clear_color(float r, float g, float b, float a) {
     clear_r_ = r; clear_g_ = g; clear_b_ = b; clear_a_ = a;
 }
 
-void SceneNode::set_size(int width, int height) {
+void Scene::set_size(int width, int height) {
     width_ = width;
     height_ = height;
 }
 
-void SceneNode::tick() {
+void Scene::tick() {
     auto now = std::chrono::steady_clock::now();
 
     float delta = std::chrono::duration<float>(now - last_tick_).count();
@@ -76,11 +76,11 @@ void SceneNode::tick() {
     Node::tick(delta);
 }
 
-int SceneNode::width() const {
+int Scene::width() const {
     return width_;
 }
 
-int SceneNode::height() const {
+int Scene::height() const {
     return height_;
 }
 

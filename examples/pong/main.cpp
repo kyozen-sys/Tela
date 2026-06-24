@@ -1,11 +1,13 @@
 #include <iostream>
 
-#include <tela/application.hpp>
+#include <tela/app.hpp>
+
+class PongGame : public tela::App
+{
+public:
+    PongGame() : tela::App(800, 600, "Pong") {}
+};
 
 int main() {
-    tela::Application app{800, 600, "Pong"};
-
-    app.run();
-
-    return 0;
+    PongGame{}.run();
 }

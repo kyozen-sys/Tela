@@ -1,11 +1,11 @@
-#include "tela/application.hpp"
+#include "tela/app.hpp"
 
 #include "tela/input.hpp"
 
 namespace tela
 {
 
-struct Application::Impl {
+struct App::Impl {
     int width;
     int height;
 
@@ -14,10 +14,10 @@ struct Application::Impl {
     std::unique_ptr<Window> window = nullptr;
     std::unique_ptr<Renderer> renderer = nullptr;
 
-    SceneNode scene = SceneNode();
+    Scene scene = Scene();
 };
 
-Application::Application(int width, int height, std::string_view title) : impl_(std::make_unique<Impl>(Impl{width, height, std::string(title)})) {
+App::App(int width, int height, std::string_view title) : impl_(std::make_unique<Impl>(Impl{width, height, std::string(title)})) {
     impl_->window = Window::create(width, height, title);
 
     impl_->renderer = Renderer::create(*impl_->window);
@@ -25,17 +25,17 @@ Application::Application(int width, int height, std::string_view title) : impl_(
     impl_->scene.set_size(width, height);
 }
 
-Application::~Application() {}
+App::~App() {}
 
-SceneNode& Application::scene() {
+Scene& App::scene() {
     return impl_->scene;
 }
 
-Renderer& Application::renderer() {
+Renderer& App::renderer() {
     return *impl_->renderer;
 }
 
-void Application::run() {
+void App::run() {
     while (impl_->window->is_open()) {
         Input::advance_frame();
 
