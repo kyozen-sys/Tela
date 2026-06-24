@@ -1,6 +1,6 @@
 #include "tela/input.hpp"
 
-#include "input_state.hpp"
+#include "input_platform.hpp"
 
 #include <bitset>
 

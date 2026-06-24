@@ -1,7 +1,7 @@
 #include "tela/window.hpp"
 
 #include "window.hpp"
-#include "input_state.hpp"
+#include "input_platform.hpp"
 
 #include <unistd.h>
 
