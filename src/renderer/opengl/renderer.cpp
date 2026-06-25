@@ -63,8 +63,6 @@ OpenGLRenderer::~OpenGLRenderer() {
     eglTerminate(impl_->egl_display);
 
     impl_->on_destroy();
-
-    delete impl_;
 }
 
 void OpenGLRenderer::clear(float r, float g, float b, float a) {
