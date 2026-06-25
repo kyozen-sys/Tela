@@ -40,7 +40,8 @@ enum class MouseButton : unsigned int {
     Extra2 = 276,
 };
 
-class Input {
+class Input
+{
 friend class App;
 
 public:

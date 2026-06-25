@@ -15,6 +15,8 @@ public:
         void* surface;
     };
 
+    [[nodiscard]] static std::unique_ptr<Window> create(int width, int height, std::string_view title);
+
     Window() = default;
 
     Window(const Window&) = delete;
@@ -22,9 +24,6 @@ public:
     virtual ~Window() = default;
 
     Window& operator=(const Window&) = delete;
-
-    [[nodiscard]] static std::unique_ptr<Window>
-    create(int width, int height, std::string_view title);
 
     [[nodiscard]] virtual bool is_open() const = 0;
 
