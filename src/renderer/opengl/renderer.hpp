@@ -29,7 +29,7 @@ public:
     void present() override;
 
 private:
-    OpenGLRendererImpl* impl_;
+    std::unique_ptr<OpenGLRendererImpl> impl_;
 };
 
 }
