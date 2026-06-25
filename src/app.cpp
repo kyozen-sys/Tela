@@ -17,7 +17,7 @@ struct App::Impl {
     Scene scene = Scene();
 };
 
-App::App(int width, int height, std::string_view title) : impl_(std::make_unique<Impl>(Impl{width, height, std::string(title)})) {
+App::App(int width, int height, std::string_view title) : impl_(std::make_unique<Impl>(width, height, std::string(title))) {
     impl_->window = Window::create(width, height, title);
 
     impl_->renderer = Renderer::create(*impl_->window);
