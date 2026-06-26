@@ -15,7 +15,7 @@ public:
         void* surface;
     };
 
-    [[nodiscard]] static std::unique_ptr<Window> create(int width, int height, std::string_view title);
+    [[nodiscard]] static std::unique_ptr<Window> create(int width, int height, std::string_view title, bool resizable);
 
     Window() = default;
 

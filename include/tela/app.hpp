@@ -10,7 +10,16 @@ namespace tela
 class App
 {
 public:
-    App(int width, int height, std::string_view title);
+    struct Config {
+        int width = 800;
+        int height = 600;
+
+        std::string_view title = "Tela";
+
+        bool resizable = true;
+    };
+
+    App(Config config);
 
     ~App();
 
@@ -19,7 +28,7 @@ public:
         static_assert(std::is_base_of_v<Scene, T>, "T must derive from Scene");
 
         T scene; run_scene(scene);
-    };
+    }
 
 private:
     struct Impl;
