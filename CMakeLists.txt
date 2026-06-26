@@ -67,6 +67,8 @@ if(PROJECT_RENDERER STREQUAL "opengl")
     
     pkg_check_modules(EGL REQUIRED IMPORTED_TARGET egl)
 
+    pkg_check_modules(EPOXY REQUIRED IMPORTED_TARGET epoxy)
+
     if("${PROJECT_PLATFORM}" STREQUAL "wayland")
         pkg_check_modules(WAYLAND_EGL REQUIRED IMPORTED_TARGET wayland-egl)
 
@@ -77,7 +79,7 @@ if(PROJECT_RENDERER STREQUAL "opengl")
 
     target_sources(${PROJECT_NAME} PRIVATE ${RENDERER_SOURCES})
 
-    list(APPEND PROJECT_LIBRARIES PkgConfig::GL PkgConfig::EGL)
+    list(APPEND PROJECT_LIBRARIES PkgConfig::GL PkgConfig::EGL PkgConfig::EPOXY)
 elseif (PROJECT_RENDERER STREQUAL "vulkan")
     message(FATAL_ERROR "Vulkan renderer is not yet supported.")
 else()
@@ -85,6 +87,14 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_LIBRARIES})
+
+include(FetchContent)
+
+FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb GIT_TAG master)
+
+FetchContent_MakeAvailable(stb)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR})
 
 option(BUILD_EXAMPLES "Build example applications" OFF)
 
