@@ -30,9 +30,13 @@ public:
 
     void remove_child(Node& child);
 
+    Node* parent() const;
+
     std::span<Node* const> children() const;
 private:
     int layer_ = 0;
+
+    Node* parent_ = nullptr;
 
     std::vector<Node*> children_;
 

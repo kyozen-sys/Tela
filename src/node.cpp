@@ -108,6 +108,10 @@ void Node2D::set_size(int width, int height) {
     impl_->size.width = width; impl_->size.height = height;
 }
 
+void Node2D::set_size(Size size) {
+    impl_->size = size;
+}
+
 Node2D::Position Node2D::position() const {
     return impl_->position;
 }
