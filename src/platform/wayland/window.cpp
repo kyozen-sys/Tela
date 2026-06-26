@@ -6,8 +6,8 @@
 #include <poll.h>
 
 std::unique_ptr<tela::Window>
-tela::Window::create(int width, int height, std::string_view title) {
-    return std::make_unique<tela::platform::wayland::WaylandWindow>(width, height, title);
+tela::Window::create(int width, int height, std::string_view title, bool resizable) {
+    return std::make_unique<tela::platform::wayland::WaylandWindow>(width, height, title, resizable);
 }
 
 namespace
@@ -103,7 +103,12 @@ static libdecor_frame_interface ldecor_frame_interface = {
 
 namespace tela::platform::wayland {
 
-WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : impl_(new WaylandWindowImpl{width, height, std::string(title)}) {
+WaylandWindow::WaylandWindow(int width, int height, std::string_view title, bool resizable) : impl_(new WaylandWindowImpl{
+    .width = width,
+    .height = height,
+    .title = std::string(title),
+    .resizable = resizable,
+}) {
     impl_->wwl_display = wl_display_connect(nullptr);
 
     if (!impl_->wwl_display)
@@ -137,6 +142,9 @@ WaylandWindow::WaylandWindow(int width, int height, std::string_view title) : im
         throw std::runtime_error("Failed to create ldecor_decorate");
 
     libdecor_frame_set_title(impl_->ldecor_frame, impl_->title.c_str());
+
+    if (!resizable)
+        libdecor_frame_unset_capabilities(impl_->ldecor_frame, LIBDECOR_ACTION_RESIZE);
 
     libdecor_frame_map(impl_->ldecor_frame);
 

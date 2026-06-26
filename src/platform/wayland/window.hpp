@@ -19,6 +19,8 @@ struct WaylandWindowImpl {
 
     std::string title;
 
+    bool resizable = true;
+
     bool configured = false;
     bool open = false;
 
@@ -41,7 +43,7 @@ struct WaylandWindowImpl {
 class WaylandWindow final : public Window
 {
 public:
-    WaylandWindow(int width, int height, std::string_view title);
+    WaylandWindow(int width, int height, std::string_view title, bool resizable);
     
     ~WaylandWindow() override;
 
