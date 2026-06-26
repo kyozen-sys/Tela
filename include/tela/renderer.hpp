@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tela/window.hpp"
+#include "tela/texture.hpp"
 
 namespace tela
 {
@@ -8,6 +9,8 @@ namespace tela
 class Renderer
 {
 public:
+    [[nodiscard]] static std::unique_ptr<Renderer> create(Window& window);
+
     Renderer() = default;
 
     virtual ~Renderer() = default;
@@ -20,7 +23,9 @@ public:
 
     virtual void present() = 0;
 
-    [[nodiscard]] static std::unique_ptr<Renderer> create(Window& window);
+    virtual void draw_texture2d(const Texture2D& texture, float x, float y, float width = 0.f, float height = 0.f) = 0;
+
+    virtual void on_resize(int width, int height) = 0;
 };
 
 }

@@ -4,10 +4,8 @@
 
 #include <wayland-egl.h>
 
-#include <GL/gl.h>
-
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+#include <epoxy/gl.h>
+#include <epoxy/egl.h>
 
 std::unique_ptr<tela::Renderer> tela::Renderer::create(Window& window) {
     auto handle = window.native_handle();
@@ -16,7 +14,7 @@ std::unique_ptr<tela::Renderer> tela::Renderer::create(Window& window) {
 
     auto* wwl_surface = static_cast<struct wl_surface*>(handle.surface);
 
-    EGLDisplay egl_display = eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, wwl_display, nullptr);
+    EGLDisplay egl_display = eglGetDisplay(static_cast<EGLNativeDisplayType>(wwl_display));
 
     if (egl_display == EGL_NO_DISPLAY)
         throw std::runtime_error("Failed to get EGL display");
@@ -43,8 +41,12 @@ std::unique_ptr<tela::Renderer> tela::Renderer::create(Window& window) {
         }
     );
 
-    window.set_resize_handler([raw_egl_window](int width, int height) {
+    auto* raw_renderer = renderer.get();
+
+    window.set_resize_handler([raw_egl_window, raw_renderer](int width, int height) {
         wl_egl_window_resize(raw_egl_window, width, height, 0, 0);
+
+        raw_renderer->on_resize(width, height);
 
         glViewport(0, 0, width, height);
     });
