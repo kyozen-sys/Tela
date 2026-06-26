@@ -14,16 +14,19 @@ public:
 
     ~App();
 
-    [[nodiscard]] Scene& scene();
+    template<typename T>
+    void run() {
+        static_assert(std::is_base_of_v<Scene, T>, "T must derive from Scene");
 
-    [[nodiscard]] Renderer& renderer();
-
-    void run();
+        T scene; run_scene(scene);
+    };
 
 private:
     struct Impl;
 
     std::unique_ptr<Impl> impl_;
+
+    void run_scene(Scene& scene);
 };
 
 }
