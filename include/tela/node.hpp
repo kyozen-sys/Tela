@@ -46,28 +46,76 @@ class Scene : public Node
 friend class App;
 
 public:
-    void draw(Renderer& renderer) override;
-    
-    int width() const;
+    Scene();
 
-    int height() const;
+    ~Scene();
+
+    void draw(Renderer& renderer) override;
 
     void set_clear_color(float r, float g, float b, float a);
 
-    void set_size(int width, int height);
-
 private:
-    float clear_r_ = 1.0f;
-    float clear_g_ = 1.0f;
-    float clear_b_ = 1.0f;
-    float clear_a_ = 1.0f;
+    struct Impl;
 
-    int width_ = 0;
-    int height_ = 0;
-
-    std::chrono::steady_clock::time_point last_tick_ = std::chrono::steady_clock::now();
+    std::unique_ptr<Impl> impl_;
 
     void tick();
+};
+
+class Node2D : public Node
+{
+public:
+    struct Size {
+        int width = 0;
+        int height = 0;
+    };
+
+    struct Position {
+        float x = 0;
+        float y = 0;
+    };
+
+    Node2D();
+
+    ~Node2D();
+
+    Size size() const;
+
+    void set_size(int width, int height);
+
+    void set_size(Size size);
+
+    Position position() const;
+
+    void set_position(float x, float y);
+
+    void set_position(Position position);
+
+protected:
+    virtual std::pair<int, int> natural_size() const { return {0, 0}; };
+
+private:
+    struct Impl;
+
+    std::unique_ptr<Impl> impl_;
+};
+
+class Sprite2D : public Node2D
+{
+public:
+    Sprite2D(std::string_view path);
+
+    ~Sprite2D();
+
+    void draw(Renderer& renderer) override;
+
+protected:
+    std::pair<int, int> natural_size() const override;
+
+private:
+    struct Impl;
+
+    std::unique_ptr<Impl> impl_;
 };
 
 }
