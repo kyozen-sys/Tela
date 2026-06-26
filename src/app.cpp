@@ -6,17 +6,12 @@ namespace tela
 {
 
 struct App::Impl {
-    int width;
-    int height;
-
-    std::string title;
-
     std::unique_ptr<Window> window = nullptr;
     std::unique_ptr<Renderer> renderer = nullptr;
 };
 
-App::App(int width, int height, std::string_view title) : impl_(std::make_unique<Impl>(width, height, std::string(title))) {
-    impl_->window = Window::create(width, height, title);
+App::App(Config config) : impl_(std::make_unique<Impl>()) {
+    impl_->window = Window::create(config.width, config.height, config.title, config.resizable);
 
     impl_->renderer = Renderer::create(*impl_->window);
 }
