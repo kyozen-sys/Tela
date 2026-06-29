@@ -5,13 +5,13 @@
 
 #include <epoxy/gl.h>
 
-std::shared_ptr<tela::Texture2D> tela::Texture2D::create(std::string_view path) {
+std::shared_ptr<tela::Texture2D> tela::Texture2D::create(ResourcePath path) {
     int width, height, channels;
 
-    unsigned char* data = stbi_load(path.data(), &width, &height, &channels, STBI_rgb_alpha);
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 
     if (!data)
-        throw std::runtime_error(std::string("Failed to load texture: ") + path.data());
+        throw std::runtime_error(std::string("Failed to load texture: ") + path.c_str());
 
     unsigned int id;
 
@@ -28,10 +28,10 @@ std::shared_ptr<tela::Texture2D> tela::Texture2D::create(std::string_view path) 
 
     stbi_image_free(data);
 
-    return std::make_shared<tela::platform::opengl::OpenGLTexture2D>(id, width, height);
+    return std::make_shared<tela::backend::opengl::OpenGLTexture2D>(id, width, height);
 }
 
-namespace tela::platform::opengl
+namespace tela::backend::opengl
 {
 
 OpenGLTexture2D::OpenGLTexture2D(unsigned int id, int width, int height) : impl_(std::make_unique<OpenGLTexture2DImpl>(id, width, height)) {}

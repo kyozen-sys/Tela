@@ -79,7 +79,7 @@ static GLuint compile_program(const char* vertex_src, const char* fragment_src) 
 
 }
 
-namespace tela::platform::opengl
+namespace tela::backend::opengl
 {
 
 void OpenGLTexture2DPipeline::init() {

@@ -8,7 +8,7 @@
 
 #include <functional>
 
-namespace tela::platform::opengl
+namespace tela::backend::opengl
 {
 
 struct OpenGLTexture2DPipeline {

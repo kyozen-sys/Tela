@@ -2,7 +2,7 @@
 
 #include "tela/texture.hpp"
 
-namespace tela::platform::opengl
+namespace tela::backend::opengl
 {
 
 struct OpenGLTexture2DImpl {
