@@ -5,13 +5,21 @@
 namespace tela
 {
 
+Node* Node::parent() const {
+    return parent_;
+}
+
 void Node::add_child(Node& child) {
+    child.parent_ = this;
+
     children_.push_back(&child);
 
     child.on_ready();
 }
 
 void Node::remove_child(Node& child) {
+    child.parent_ = nullptr;
+
     std::erase(children_, &child);
 }
 
@@ -112,6 +120,24 @@ void Node2D::set_size(Size size) {
     impl_->size = size;
 }
 
+Node2D::Position Node2D::global_position() const {
+    auto pos = position();
+
+    Node* pd = parent();
+
+    while (pd) {
+        if (auto* p2d = dynamic_cast<Node2D*>(pd)) {
+            auto parent_pos = p2d->position();
+
+            pos.x += parent_pos.x; pos.y += parent_pos.y;
+        }
+
+        pd = pd->parent();
+    }
+
+    return pos;
+}
+
 Node2D::Position Node2D::position() const {
     return impl_->position;
 }
@@ -128,7 +154,7 @@ struct Sprite2D::Impl {
     std::shared_ptr<Texture2D> texture2d;
 };
 
-Sprite2D::Sprite2D(std::string_view path) : Node2D(), impl_(std::make_unique<Impl>()) {
+Sprite2D::Sprite2D(ResourcePath path) : Node2D(), impl_(std::make_unique<Impl>()) {
     impl_->texture2d = Texture2D::create(path);
 }
 
@@ -137,7 +163,7 @@ Sprite2D::~Sprite2D() = default;
 void Sprite2D::draw(Renderer& renderer) {
     auto [width, height] = size();
 
-    auto [x, y] = position();
+    auto [x, y] = global_position();
 
     renderer.draw_texture2d(*impl_->texture2d, x, y, static_cast<float>(width), static_cast<float>(height));
 }

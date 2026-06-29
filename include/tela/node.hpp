@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tela/renderer.hpp"
+#include "tela/resources.hpp"
 
 #include <span>
 #include <chrono>
@@ -89,6 +90,8 @@ public:
 
     void set_size(Size size);
 
+    Position global_position() const;
+
     Position position() const;
 
     void set_position(float x, float y);
@@ -107,7 +110,7 @@ private:
 class Sprite2D : public Node2D
 {
 public:
-    Sprite2D(std::string_view path);
+    Sprite2D(ResourcePath path);
 
     ~Sprite2D();
 

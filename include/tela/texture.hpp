@@ -1,5 +1,7 @@
 #pragma once
 
+#include "resources.hpp"
+
 #include <memory>
 #include <string_view>
 
@@ -9,7 +11,7 @@ namespace tela
 class Texture2D
 {
 public:
-    [[nodiscard]] static std::shared_ptr<Texture2D> create(std::string_view path);
+    [[nodiscard]] static std::shared_ptr<Texture2D> create(ResourcePath path);
 
     Texture2D() = default;
 
