@@ -1,8 +1,14 @@
 # Tela
 
-C++ multimedia and game-development library for Linux. Provides windowing, 2D rendering,
-input handling, and audio directly over Wayland + OpenGL (EGL), without SDL or any other
-intermediary.
+C++ multimedia and game-development library. Provides windowing, 2D rendering, and input
+handling via a pluggable backend system, without SDL or any other intermediary.
+
+The build is parameterized across three axes (CMake options):
+- `PROJECT_PLATFORM`: `linux` | `windows` (stub)
+- `PROJECT_BACKEND`: `wayland` | `x11` (stub)
+- `PROJECT_RENDERER`: `opengl` | `vulkan` (stub)
+
+Current implementation: Linux · Wayland · OpenGL/EGL.
 
 ## API Design
 
@@ -15,8 +21,8 @@ Tela uses a **node-based scene system** inspired by Godot:
   - `draw(Renderer&)` — called every frame for rendering, after all `process` calls
   - `add_child(Node&)` — builds the scene tree; parent calls children recursively
 - `Input` is a global consulted statically: `Input::is_key_pressed(Key::Space)`
-- `Renderer` is abstract (`GLRenderer` for OpenGL/EGL on Wayland). Passed to `draw()`.
-- `Window` is abstract (`WaylandWindow` for Wayland). Created by `App`.
+- `Renderer` is abstract (e.g. `GLRenderer` for OpenGL/EGL). Passed to `draw()`.
+- `Window` is abstract (e.g. `WaylandWindow` for Wayland). Created by `App`.
 - Delta time is calculated by the `SceneTree` and passed down through `process`.
 
 ## Claude's Role
@@ -38,19 +44,20 @@ You are a pair programming analyst. You read, review, and advise. You do NOT wri
 
 ### Security
 - Buffer overflows, unchecked lengths, unsafe casts (`reinterpret_cast`, C-style casts)
-- Resource leaks: Wayland objects (`wl_*`), EGL contexts, OpenGL handles, file descriptors
+- Resource leaks: platform handles (e.g. `wl_*`), GPU contexts, OpenGL handles, file descriptors
 - RAII violations: any resource acquired without a corresponding RAII guard
 - Missing input validation at public API boundaries
 
 ### Architecture
-- Separation between `backend/` (Wayland/EGL/input internals) and the public API (`include/tela/`)
-- Coupling that leaks implementation details into public headers
+- Separation between `src/platform/`, `src/backend/`, `src/renderer/` (implementation internals)
+  and the public API in `include/tela/` — public headers must not leak any backend or platform choice
+- Coupling that bypasses the platform/backend/renderer layering
 - Unnecessary includes in public headers (compilation time + ABI pollution)
 
 ### Showcase Quality
 - Modern C++ (C++20 minimum): concepts, `std::span`, `[[nodiscard]]`, `std::expected`
 - API clarity: would a Pygame user understand this without reading the internals?
-- No unnecessary dependencies beyond Wayland, EGL, OpenGL, ALSA/PipeWire
+- No unnecessary dependencies beyond those required by the active platform/backend/renderer
 - CMake hygiene: targets, not variables (`target_include_directories`, not `include_directories`)
 - Error messages that are useful, not just raw error codes
 
