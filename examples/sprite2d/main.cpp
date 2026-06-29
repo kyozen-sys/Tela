@@ -10,7 +10,7 @@ class Player : public tela::Node2D
 {
 public:
     Player() : tela::Node2D() {
-        sprite_.set_size(128, 128);
+        sprite_.set_size(256, 256);
 
         sprite_.set_position(-(sprite_.size().width / 2), -(sprite_.size().height / 2));
 
