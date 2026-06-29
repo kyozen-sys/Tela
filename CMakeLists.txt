@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 
-list(FILTER PROJECT_SOURCES EXCLUDE REGEX "src/platform/.*")
+list(FILTER PROJECT_SOURCES EXCLUDE REGEX "src/backend/.*")
 
 list(FILTER PROJECT_SOURCES EXCLUDE REGEX "src/renderer/.*")
 
@@ -22,22 +22,36 @@ target_include_directories(${PROJECT_NAME}
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
-set(PROJECT_PLATFORM "wayland" CACHE STRING "The platform to build for (wayland|x11)")
-
-set_property(CACHE PROJECT_PLATFORM PROPERTY STRINGS wayland x11)
-
 find_package(PkgConfig REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(PROJECT_LIBRARIES)
 
-if(PROJECT_PLATFORM STREQUAL "wayland")
-    pkg_check_modules(WAYLAND_CLIENT REQUIRED IMPORTED_TARGET wayland-client)
+set(PROJECT_PLATFORM "linux" CACHE STRING "The platform to build for (linux|windows)")
 
-    file(GLOB_RECURSE PLATFORM_SOURCES CONFIGURE_DEPENDS src/platform/wayland/*.cpp)
+set_property(CACHE PROJECT_PLATFORM PROPERTY STRINGS linux windows)
+
+if(PROJECT_PLATFORM STREQUAL "linux")
+    file(GLOB_RECURSE PLATFORM_SOURCES CONFIGURE_DEPENDS src/platform/linux/*.cpp)
 
     target_sources(${PROJECT_NAME} PRIVATE ${PLATFORM_SOURCES})
+elseif(PROJECT_PLATFORM STREQUAL "windows")
+    message(FATAL_ERROR "Windows backend is not yet supported.")
+else()
+    message(FATAL_ERROR "Unsupported PROJECT_PLATFORM='${PROJECT_PLATFORM}'. " "Valid values are: linux, windows")
+endif()
+
+set(PROJECT_BACKEND "wayland" CACHE STRING "The backend to build for (wayland|x11)")
+
+set_property(CACHE PROJECT_BACKEND PROPERTY STRINGS wayland x11)
+
+if(PROJECT_BACKEND STREQUAL "wayland")
+    pkg_check_modules(WAYLAND_CLIENT REQUIRED IMPORTED_TARGET wayland-client)
+
+    file(GLOB_RECURSE BACKEND_SOURCES CONFIGURE_DEPENDS src/backend/wayland/*.cpp)
+
+    target_sources(${PROJECT_NAME} PRIVATE ${BACKEND_SOURCES})
 
     include(WaylandProtocol)
 
@@ -52,10 +66,10 @@ if(PROJECT_PLATFORM STREQUAL "wayland")
     wayland_protocol(${PROJECT_NAME} ${WL_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml)
 
     list(APPEND PROJECT_LIBRARIES PkgConfig::WAYLAND_CLIENT PkgConfig::LIBDECOR)
-elseif (PROJECT_PLATFORM STREQUAL "x11")
-    message(FATAL_ERROR "X11 platform is not yet supported.")
+elseif(PROJECT_BACKEND STREQUAL "x11")
+    message(FATAL_ERROR "X11 backend is not yet supported.")
 else()
-    message(FATAL_ERROR "Unsupported PROJECT_PLATFORM='${PROJECT_PLATFORM}'. " "Valid values are: wayland, x11")
+    message(FATAL_ERROR "Unsupported PROJECT_BACKEND='${PROJECT_BACKEND}'. " "Valid values are: wayland, x11")
 endif()
 
 set(PROJECT_RENDERER "opengl" CACHE STRING "The renderer to build for (opengl|vulkan)")
@@ -69,7 +83,7 @@ if(PROJECT_RENDERER STREQUAL "opengl")
 
     pkg_check_modules(EPOXY REQUIRED IMPORTED_TARGET epoxy)
 
-    if("${PROJECT_PLATFORM}" STREQUAL "wayland")
+    if("${PROJECT_BACKEND}" STREQUAL "wayland")
         pkg_check_modules(WAYLAND_EGL REQUIRED IMPORTED_TARGET wayland-egl)
 
         list(APPEND PROJECT_LIBRARIES PkgConfig::WAYLAND_EGL)
